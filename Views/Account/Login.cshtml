@@ -1,0 +1,56 @@
+@model LoginViewModel
+
+@{
+    ViewData["Title"] = "Entrar";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+
+        <div class="text-center mb-4">
+            <h1 class="fw-bold mb-1">Entrar</h1>
+            <p class="text-muted mb-0">Acesse sua conta para abrir e acompanhar chamados.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" class="form-control" autocomplete="username" placeholder="seu@email.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Senha" class="form-label fw-semibold"></label>
+                        <input asp-for="Senha" class="form-control" autocomplete="current-password" />
+                        <span asp-validation-for="Senha" class="text-danger small"></span>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input asp-for="LembrarMe" class="form-check-input" />
+                        <label asp-for="LembrarMe" class="form-check-label"></label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Entrar</button>
+
+                </form>
+
+            </div>
+        </div>
+
+        <p class="text-center text-muted mt-3">
+            Ainda não tem conta?
+            <a asp-action="Register">Cadastre-se</a>
+        </p>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

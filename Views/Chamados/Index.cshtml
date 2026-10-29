@@ -1,0 +1,202 @@
+@model List<HelpDeskMvc.Models.Chamado>
+
+@{
+    ViewData["Title"] = "Chamados";
+
+    // Support/Admin veem a fila completa; User vê apenas os próprios chamados.
+    var ehEquipe = User.IsInRole(Perfis.Support) || User.IsInRole(Perfis.Admin);
+
+    static string StatusLabel(ChamadoStatus status) => status switch
+    {
+        ChamadoStatus.Aberto => "Aberto",
+        ChamadoStatus.EmAndamento => "Em andamento",
+        ChamadoStatus.Resolvido => "Resolvido",
+        ChamadoStatus.Cancelado => "Cancelado",
+        _ => status.ToString()
+    };
+}
+
+<div class="container mt-5">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-1">@(ehEquipe ? "Chamados" : "Meus Chamados")</h1>
+            <p class="text-muted mb-0">
+                @(ehEquipe
+                    ? "Visualize e gerencie os chamados registrados no sistema."
+                    : "Acompanhe os chamados que você abriu.")
+            </p>
+        </div>
+
+        <a asp-controller="Chamados"
+           asp-action="Create"
+           class="btn btn-primary px-4 py-2 shadow-sm">
+            + Abrir Novo Chamado
+        </a>
+    </div>
+
+    @* Mensagem de sucesso/erro após operações (ex.: exclusão). *@
+    @if (TempData["Mensagem"] != null)
+    {
+        var tipo = TempData["MensagemTipo"] as string ?? "info";
+        <div class="alert alert-@tipo" role="alert">
+            @TempData["Mensagem"]
+        </div>
+    }
+
+    <!-- FILTROS -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-8">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="Buscar chamados..." />
+                </div>
+
+                <div class="col-md-4">
+                    <select class="form-select">
+                        <option>Filtrar por status</option>
+                        <option>Aberto</option>
+                        <option>Em andamento</option>
+                        <option>Resolvido</option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="table-responsive">
+
+            <table class="table align-middle mb-0">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Título</th>
+                        @if (ehEquipe)
+                        {
+                            <th>Solicitante</th>
+                        }
+                        <th>Status</th>
+                        <th>Data Abertura</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var chamado in Model)
+                    {
+                        <tr>
+
+                            <td>
+                                <span class="badge bg-light text-primary border">
+                                    #@chamado.Id
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    @chamado.Titulo
+                                </div>
+
+                                <small class="text-muted">
+                                    @chamado.Descricao
+                                </small>
+                            </td>
+
+                            @if (ehEquipe)
+                            {
+                                <td>
+                                    @(chamado.Usuario?.NomeCompleto ?? "—")
+                                </td>
+                            }
+
+                            <td>
+
+                                @if (chamado.Status == ChamadoStatus.Aberto)
+                                {
+                                    <span class="badge bg-success-subtle text-success">
+                                        ● Aberto
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        @StatusLabel(chamado.Status)
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+                                @chamado.DataAbertura
+                            </td>
+
+                            <td class="text-center">
+
+                                @* Os botões só refletem as permissões; o controller valida tudo de novo. *@
+                                <div class="d-flex justify-content-center gap-2">
+
+                                    <a asp-controller="Chamados"
+                                       asp-action="Detalhes"
+                                       asp-route-id="@chamado.Id"
+                                       class="btn btn-outline-primary btn-sm">
+                                        Ver Detalhes
+                                    </a>
+
+                                    @if (ehEquipe || chamado.Status == ChamadoStatus.Aberto)
+                                    {
+                                        <a asp-controller="Chamados"
+                                           asp-action="Editar"
+                                           asp-route-id="@chamado.Id"
+                                           class="btn btn-outline-warning btn-sm">
+                                            Editar
+                                        </a>
+                                    }
+
+                                    @if (ehEquipe)
+                                    {
+                                        <form asp-controller="Chamados"
+                                              asp-action="Excluir"
+                                              asp-route-id="@chamado.Id"
+                                              method="post"
+                                              onsubmit="return confirm('Tem certeza que deseja excluir o chamado #@chamado.Id? Esta ação não pode ser desfeita.');">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                Excluir
+                                            </button>
+                                        </form>
+                                    }
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="card-footer bg-white border-0">
+            <small class="text-muted">
+                Total de chamados: @Model.Count
+            </small>
+        </div>
+
+    </div>
+
+</div>

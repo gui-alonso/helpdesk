@@ -1,0 +1,205 @@
+﻿@model HelpDeskMvc.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container mt-5">
+
+    <!-- HERO -->
+    <div class="p-5 mb-4 bg-light rounded-4 border shadow-sm">
+
+        <div class="container-fluid py-2">
+
+            <h1 class="display-6 fw-bold mb-3">
+                Bem-vindo ao HelpDeskMVC
+            </h1>
+
+            <p class="col-md-8 fs-5 text-muted">
+                Sistema simples de gerenciamento de chamados desenvolvido com
+                ASP.NET Core MVC para fins educacionais.
+            </p>
+
+            <div class="d-flex gap-2 mt-4">
+
+                <a asp-controller="Chamados"
+                   asp-action="Index"
+                   class="btn btn-primary btn-lg px-4">
+                    Ver Chamados
+                </a>
+
+                <a asp-controller="Chamados"
+                   asp-action="Create"
+                   class="btn btn-outline-primary btn-lg px-4">
+                    Abrir Novo Chamado
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- CARDS -->
+    <div class="row g-4 mb-5">
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Total de Chamados
+                    </small>
+
+                    <h2 class="fw-bold mt-2">
+                        @Model.Total
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Chamados Abertos
+                    </small>
+
+                    <h2 class="fw-bold text-success mt-2">
+                        @Model.Abertos
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Em Andamento
+                    </small>
+
+                    <h2 class="fw-bold text-warning mt-2">
+                        @Model.EmAndamento
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+
+                    <small class="text-muted">
+                        Resolvidos
+                    </small>
+
+                    <h2 class="fw-bold text-primary mt-2">
+                        @Model.Resolvidos
+                    </h2>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ÚLTIMOS CHAMADOS -->
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-header bg-white border-0 pt-4">
+            <h5 class="fw-bold mb-0">
+                Últimos Chamados
+            </h5>
+        </div>
+
+        <div class="card-body">
+
+            @if (!Model.UltimosChamados.Any())
+            {
+                <div class="text-center text-muted py-4">
+
+                    <p class="mb-3">
+                        Nenhum chamado cadastrado ainda.
+                    </p>
+
+                    <a asp-controller="Chamados"
+                       asp-action="Create"
+                       class="btn btn-sm btn-primary">
+                        Abrir o primeiro chamado
+                    </a>
+
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+
+                    @foreach (var chamado in Model.UltimosChamados)
+                    {
+                        // Escolhe as classes do badge conforme o status.
+                        var badge = chamado.Status switch
+                        {
+                            ChamadoStatus.Aberto => "bg-success-subtle text-success",
+                            ChamadoStatus.EmAndamento => "bg-warning-subtle text-warning",
+                            ChamadoStatus.Resolvido => "bg-primary-subtle text-primary",
+                            _ => "bg-secondary-subtle text-secondary"
+                        };
+
+                        // Rótulo amigável, sem alterar o valor interno do enum.
+                        var statusLabel = chamado.Status switch
+                        {
+                            ChamadoStatus.Aberto => "Aberto",
+                            ChamadoStatus.EmAndamento => "Em andamento",
+                            ChamadoStatus.Resolvido => "Resolvido",
+                            ChamadoStatus.Cancelado => "Cancelado",
+                            _ => chamado.Status.ToString()
+                        };
+
+                        <a asp-controller="Chamados"
+                           asp-action="Detalhes"
+                           asp-route-id="@chamado.Id"
+                           class="list-group-item list-group-item-action px-0">
+
+                            <div class="d-flex justify-content-between">
+
+                                <div>
+                                    <div class="fw-semibold">
+                                        @chamado.Titulo
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Aberto em @chamado.DataAbertura.ToString("dd/MM/yyyy HH:mm")
+                                    </small>
+                                </div>
+
+                                <span class="badge @badge align-self-start">
+                                    @statusLabel
+                                </span>
+
+                            </div>
+
+                        </a>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

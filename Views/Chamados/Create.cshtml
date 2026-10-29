@@ -1,0 +1,59 @@
+@model CriarChamadoViewModel
+
+@{
+    ViewData["Title"] = "Abrir Novo Chamado";
+}
+
+<div class="container mt-5">
+
+    <div class="mb-4">
+        <h1 class="fw-bold mb-1">Abrir Novo Chamado</h1>
+        <p class="text-muted mb-0">
+            Preencha as informações abaixo para registrar um novo chamado.
+        </p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+
+            <form asp-action="Create" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Titulo" class="form-label fw-semibold"></label>
+                    <input asp-for="Titulo"
+                           class="form-control"
+                           placeholder="Ex: Computador não liga" />
+                    <span asp-validation-for="Titulo" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Descricao" class="form-label fw-semibold"></label>
+                    <textarea asp-for="Descricao"
+                              class="form-control"
+                              rows="5"
+                              placeholder="Descreva o problema com detalhes..."></textarea>
+                    <span asp-validation-for="Descricao" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        Salvar Chamado
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

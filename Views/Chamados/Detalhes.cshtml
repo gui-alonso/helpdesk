@@ -1,0 +1,105 @@
+@model HelpDeskMvc.Models.Chamado
+
+@{
+    ViewData["Title"] = " Detalhes do Chamados";
+
+    static string StatusLabel(ChamadoStatus status) => status switch
+    {
+        ChamadoStatus.Aberto => "Aberto",
+        ChamadoStatus.EmAndamento => "Em andamento",
+        ChamadoStatus.Resolvido => "Resolvido",
+        ChamadoStatus.Cancelado => "Cancelado",
+        _ => status.ToString()
+    };
+
+    static string StatusBadgeClass(ChamadoStatus status) => status switch
+    {
+        ChamadoStatus.Aberto => "bg-success-subtle text-success",
+        ChamadoStatus.EmAndamento => "bg-warning-subtle text-warning",
+        ChamadoStatus.Resolvido => "bg-primary-subtle text-primary",
+        ChamadoStatus.Cancelado => "bg-secondary-subtle text-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="container mt-4">
+    <h2>Detalhes do Chamado @Model.Id</h2>
+    <hr/>
+
+    @if (TempData["Mensagem"] != null)
+    {
+        var tipo = TempData["MensagemTipo"] as string ?? "info";
+        <div class="alert alert-@tipo" role="alert">
+            @TempData["Mensagem"]
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            Informações do Ticket
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">@Model.Titulo</h5>
+            <p class="card-text">
+                <strong>Descrição:</strong></br>
+                @Model.Descricao
+            </p>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                <Strong>Status:</Strong>
+                <span class="badge @StatusBadgeClass(Model.Status)">@StatusLabel(Model.Status)</span></br>
+                <Strong>Data Abertura:</Strong> @Model.DataAbertura.ToString("dd/MM/yyyy HH:mm")</br>
+                <Strong>Data Fechamento:</Strong>@(Model.DataFechamento.HasValue
+                ? Model.DataFechamento.Value.ToString("dd/MM/yyyy HH:mm")
+                : "Em aberto")</br>
+                <Strong>Aberto por:</Strong> @(Model.Usuario?.NomeCompleto ?? "Não informado (chamado antigo)")
+            </p>
+        </div>
+        @* Ações de atendimento só aparecem para Support/Admin.
+           O controller também bloqueia os POSTs para os demais perfis. *@
+        @if (User.IsInRole(Perfis.Support) || User.IsInRole(Perfis.Admin))
+        {
+        <div class="card-body border-top">
+            <h6 class="mb-3">Ações do atendimento</h6>
+            <div class="d-flex gap-2 flex-wrap">
+
+                @if (Model.Status == ChamadoStatus.Aberto)
+                {
+                    <form asp-action="IniciarAtendimento" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-primary">Iniciar atendimento</button>
+                    </form>
+
+                    <form asp-action="Cancelar" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Tem certeza que deseja cancelar este chamado?');">
+                        <button type="submit" class="btn btn-outline-danger">Cancelar</button>
+                    </form>
+                }
+                else if (Model.Status == ChamadoStatus.EmAndamento)
+                {
+                    <form asp-action="Resolver" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-success">Resolver chamado</button>
+                    </form>
+
+                    <form asp-action="Cancelar" asp-route-id="@Model.Id" method="post"
+                          onsubmit="return confirm('Tem certeza que deseja cancelar este chamado?');">
+                        <button type="submit" class="btn btn-outline-danger">Cancelar</button>
+                    </form>
+                }
+                else if (Model.Status == ChamadoStatus.Resolvido)
+                {
+                    <form asp-action="Reabrir" asp-route-id="@Model.Id" method="post">
+                        <button type="submit" class="btn btn-warning">Reabrir</button>
+                    </form>
+                }
+                else
+                {
+                    <span class="text-muted">Nenhuma ação disponível para chamados cancelados.</span>
+                }
+
+            </div>
+        </div>
+        }
+    </div>
+    <a href="@Url.Action("Index", "Chamados")" class="btn btn-secondary mt-3">Voltar para Lista</a>
+</div>

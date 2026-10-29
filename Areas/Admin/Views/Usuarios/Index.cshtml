@@ -1,0 +1,85 @@
+@model List<UsuarioListaViewModel>
+
+@{
+    ViewData["Title"] = "Usuários";
+
+    static string PerfilBadgeClass(string perfil) => perfil switch
+    {
+        Perfis.Admin => "bg-danger-subtle text-danger",
+        Perfis.Support => "bg-warning-subtle text-warning",
+        _ => "bg-secondary-subtle text-secondary"
+    };
+}
+
+<div class="container mt-5">
+
+    <div class="mb-4">
+        <h1 class="fw-bold mb-1">Usuários</h1>
+        <p class="text-muted mb-0">
+            Gerencie os perfis de acesso. O sistema sempre precisa de pelo menos um Admin.
+        </p>
+    </div>
+
+    @if (TempData["Mensagem"] != null)
+    {
+        var tipo = TempData["MensagemTipo"] as string ?? "info";
+        <div class="alert alert-@tipo" role="alert">
+            @TempData["Mensagem"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Perfil atual</th>
+                        <th>Alterar perfil</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var usuario in Model)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                @usuario.NomeCompleto
+                                @if (usuario.EhUsuarioAtual)
+                                {
+                                    <span class="badge bg-light text-primary border ms-1">você</span>
+                                }
+                            </td>
+                            <td>@usuario.Email</td>
+                            <td>
+                                <span class="badge @PerfilBadgeClass(usuario.Perfil)">@usuario.Perfil</span>
+                            </td>
+                            <td>
+                                <form asp-action="AlterarPerfil" method="post" class="d-flex gap-2"
+                                      onsubmit="return confirm('Confirmar alteração de perfil?');">
+                                    <input type="hidden" name="UsuarioId" value="@usuario.Id" />
+                                    <select name="NovoPerfil" class="form-select form-select-sm" style="max-width: 140px;"
+                                            aria-label="Novo perfil de @usuario.NomeCompleto">
+                                        @foreach (var perfil in Perfis.Todos)
+                                        {
+                                            <option value="@perfil" selected="@(perfil == usuario.Perfil)">@perfil</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Salvar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0">
+            <small class="text-muted">Total de usuários: @Model.Count</small>
+        </div>
+    </div>
+
+</div>
